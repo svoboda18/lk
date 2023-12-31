@@ -133,11 +133,11 @@ int orange_state_warning(void)
 	video_set_cursor(video_get_rows() / 2, 0);
 	video_printf("Orange State\n\n");
 	video_printf("Your device has been unlocked and can't be trusted\n");
-	video_printf("Your device will boot in 5 seconds\n");
+/*	video_printf("Your device will boot in 5 seconds\n");
 	mtk_wdt_restart();
 	mdelay(5000);
 	mtk_wdt_restart();
-
+*/
 	return ret;
 }
 
