@@ -21,7 +21,7 @@ typedef enum
 	Cust_CC_400MA  = 0xD,
 	Cust_CC_200MA  = 0xE,
 	Cust_CC_70MA   = 0xF,
-	Cust_CC_0MA	   = 0xDD
+	Cust_CC_0MA    = 0xDD
 }cust_charging_current_enum;
 
 typedef struct{	
@@ -38,8 +38,10 @@ typedef struct{
 #define RECHARGING_VOLTAGE      4110
 
 /* Charging Current Setting */
-#define USB_CHARGER_CURRENT					Cust_CC_450MA
-#define AC_CHARGER_CURRENT					Cust_CC_650MA	
+//#define USB_CHARGER_CURRENT					Cust_CC_450MA
+#define USB_CHARGER_CURRENT					Cust_CC_900MA
+//#define AC_CHARGER_CURRENT					Cust_CC_650MA
+#define AC_CHARGER_CURRENT					Cust_CC_1200MA		
 
 /* Battery Meter Solution */
 #define CONFIG_ADC_SOLUTION 	1
@@ -62,11 +64,9 @@ VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 
 /* Precise Tunning */
 //#define BATTERY_AVERAGE_SIZE 	600
-#define BATTERY_AVERAGE_SIZE 	60
-
-
+//#define BATTERY_AVERAGE_SIZE 	60
+#define BATTERY_AVERAGE_SIZE 	30 //fixed value
 #define CHARGING_IDLE_MODE	 1
-
 #define CHARGING_PICTURE	 1
 
 /* Common setting */
@@ -82,7 +82,8 @@ VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 #define BACKLIGHT_KEY 10					// camera key
 
 /* Teperature related setting */
-#define RBAT_PULL_UP_R             39000
+#define RBAT_PULL_UP_R             16900
+#define RBAT_PULL_DOWN_R	   27000
 #define RBAT_PULL_UP_VOLT          1800
 #define TBAT_OVER_CRITICAL_LOW     68237
 //#define TBAT_OVER_CRITICAL_LOW     483954
