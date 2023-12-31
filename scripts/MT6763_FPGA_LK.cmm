@@ -1,0 +1,238 @@
+;;-> # Option: Serial Wire or Parallel JTAG
+;; OPT_JTAG
+;; 0: Parallel
+;; 1: Serial Wire
+&OPT_JTAG=0
+
+;;-> # Option: Number of CPUs to be connected
+;; OPT_NR_CPUS
+&OPT_NR_CPUS=1
+
+;;-> # Option: RAM booting or EMMC booting
+;; OPT_RAM_BOOT
+;; 0: EMMC booting
+;; 1: RAM booting
+&OPT_RAM_BOOT=1
+
+;;-> # Option: FPGA with LCM
+;; OPT_WITH_LCM
+;; 0: LCM is not exist
+;; 1: LCM is exist
+&OPT_WITH_LCM=1
+
+
+&Project="fpga_mt6763_64"
+&OutProjectPath="../build-&Project"
+;&OutProjectPath="../../../../../../../out/target/product/&Project/obj/BOOTLOADER_OBJ/build-&Project"
+
+
+SYStem.Down
+SYStem.Reset
+SYStem.Option EnReset ON
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset OFF
+;SYStem.JtagClock 10.MHz
+;SYStem.JtagClock 1.MHz
+SYStem.JtagClock 3.MHz
+
+IF &OPT_JTAG==0
+(
+    SYStem.Config SWDP OFF
+)
+ELSE IF &OPT_JTAG==1
+(
+    SYStem.Config SWDP ON
+)
+
+SYStem.CPU CORTEXA53
+SYStem.Config CORENUMBER &OPT_NR_CPUS
+;SYStem.Config COREBASE 0x80810000 0x80910000 0x80A10000 0x80B10000 0x80C10000 0x80D10000 0x80E10000 0x80F10000
+;SYStem.Config CTIBASE  0x80820000 0x80920000 0x80A20000 0x80B20000 0x80C20000 0x80D20000 0x80E20000 0x80F20000
+SYSTEM.CONFIG COREBASE 0x8D410000;
+SYStem.CONFIG CTIBASE 0x8D420000;
+
+SYStem.Up
+
+MMU.OFF
+
+SETUP.IMASKHLL ON
+SETUP.IMASKASM ON
+
+; Disable DABORT and PABORT breakpoint
+TrOnchip.Set dabort off
+TrOnchip.Set pabort off
+TrOnchip.Set undef off
+TrOnchip.Set irq off
+
+; Set default breakpoints to HW
+Break.SELect Program OnChip
+Break.SELect Read OnChip
+Break.SELect Write OnChip
+
+;
+; board init
+;
+; Disable acinactm
+D.S c:0x1020011C %LE %LONG 0x1
+D.S c:0x1020011C %LE %LONG 0x1
+
+; Disable wdt
+;D.S c:0x10212000 %LE %LONG 0x22000064
+D.S SD:0x10007000 %LE %LONG 0x22000064
+
+; disable polarity secure access
+&i=0.
+while &i<20.
+(
+  &sec_pol=0x0C530A00+(&i*4);
+  d.s c:&sec_pol %le %long 0x0
+  &i=&i+1;
+)
+
+; setup boot argu from PL
+IF &OPT_RAM_BOOT==1
+(
+    ;do MT6763_FPGA_DDR.cmm
+;    do olympus_FPGA_DDR_V7_20151021_older_512M.cmm
+    ; do olympus_FPGA_DDR_V7_20151021.cmm
+    do MT6763_FPGA_DDR.cmm
+
+    IF &OPT_WITH_LCM==1
+    (
+        do MT6763_DSI0_B60384.cmm
+    )
+
+    R.S R4 0x4007f288
+    D.S SD:0x4007f288 %LE %LONG 0x504c504c  ;maggic_number
+    D.S SD:0x4007f28c %LE %LONG 0x00000000  ;boot_mode
+    D.S SD:0x4007f290 %LE %LONG 0x00000000  ;e_flag
+    D.S SD:0x4007f294 %LE %LONG 0x11003000  ;log_port
+    D.S SD:0x4007f298 %LE %LONG 0x000e1000  ;log_baudrate
+    D.S SD:0x4007f29c %LE %LONG 0xffff0201  ;reserved[2], part_num, log_enable
+    D.S SD:0x4007f2a0 %LE %LONG 0x00000002  ;dram_rank_num
+    D.S SD:0x4007f2a4 %LE %LONG 0x10000000  ;dram_rank_size[0]
+    D.S SD:0x4007f2a8 %LE %LONG 0x10000000  ;dram_rank_size[1]
+    D.S SD:0x4007f2ac %LE %LONG 0xdfffffff  ;dram_rank_size[2]
+    D.S SD:0x4007f2b0 %LE %LONG 0xfffffdff  ;dram_rank_size[3]
+    D.S SD:0x4007f2b4 %LE %LONG 0xffffffff
+    D.S SD:0x4007f2b8 %LE %LONG 0x00000002  ;mblock_num
+    D.S SD:0x4007f2bc %LE %LONG 0x00000000
+    D.S SD:0x4007f2c0 %LE %LONG 0x40000000  ;mblock[0].start
+    D.S SD:0x4007f2c4 %LE %LONG 0x00000000
+    D.S SD:0x4007f2c8 %LE %LONG 0x10000000  ;mblock[0].size
+    D.S SD:0x4007f2cc %LE %LONG 0x00000000
+    D.S SD:0x4007f2d0 %LE %LONG 0x00000000  ;mblock[0].rank
+    D.S SD:0x4007f2d4 %LE %LONG 0x00000000
+    D.S SD:0x4007f2d8 %LE %LONG 0x50000000  ;mblock[1].start
+    D.S SD:0x4007f2dc %LE %LONG 0x00000000
+    D.S SD:0x4007f2e0 %LE %LONG 0x0fe00000  ;mblock[1].size
+    D.S SD:0x4007f2e4 %LE %LONG 0x00000000
+    D.S SD:0x4007f2e8 %LE %LONG 0x00000001  ;mblock[1].rank
+    D.S SD:0x4007f2ec %LE %LONG 0x00000000
+    D.S SD:0x4007f2f0 %LE %LONG 0x00000000  ;mblock[2].start
+    D.S SD:0x4007f2f4 %LE %LONG 0x00000000
+    D.S SD:0x4007f2f8 %LE %LONG 0x00000000  ;mblock[2].size
+    D.S SD:0x4007f2fc %LE %LONG 0x00000000
+    D.S SD:0x4007f300 %LE %LONG 0x00000000  ;mblock[2].rank
+    D.S SD:0x4007f304 %LE %LONG 0x00000000
+    D.S SD:0x4007f308 %LE %LONG 0x00000000  ;mblock[3].start
+    D.S SD:0x4007f30c %LE %LONG 0x00000000
+    D.S SD:0x4007f310 %LE %LONG 0x00000000  ;mblock[3].size
+    D.S SD:0x4007f314 %LE %LONG 0x00000000
+    D.S SD:0x4007f318 %LE %LONG 0x00000000  ;mblock[3].rank
+    D.S SD:0x4007f31c %LE %LONG 0x00000000
+
+    D.S SD:0x4007f320--0x4007febf %LE %LONG 0x00000000 ;mblock[4]~mblock[127]
+
+    D.S SD:0x4007fec0 %LE %LONG 0x00000002  ;orig_dram_info.rank_num
+    D.S SD:0x4007fec4 %LE %LONG 0xffffffff
+    D.S SD:0x4007fec8 %LE %LONG 0x40000000  ;rank_info[0].start
+    D.S SD:0x4007fecc %LE %LONG 0x00000000
+    D.S SD:0x4007fed0 %LE %LONG 0x10000000  ;rank_info[0].size
+    D.S SD:0x4007fed4 %LE %LONG 0x00000000
+    D.S SD:0x4007fed8 %LE %LONG 0x50000000  ;rank_info[1].start
+    D.S SD:0x4007fedc %LE %LONG 0x00000000
+    D.S SD:0x4007fee0 %LE %LONG 0x10000000  ;rank_info[1].size
+    D.S SD:0x4007fee4 %LE %LONG 0x00000000
+    D.S SD:0x4007fee8 %LE %LONG 0xffffffff  ;rank_info[2].start
+    D.S SD:0x4007feec %LE %LONG 0xffffffff
+    D.S SD:0x4007fef0 %LE %LONG 0xfffeffff  ;rank_info[2].size
+    D.S SD:0x4007fef4 %LE %LONG 0xfffffffd
+    D.S SD:0x4007fef8 %LE %LONG 0xffffffff  ;rank_info[3].start
+    D.S SD:0x4007fefc %LE %LONG 0xffffffff
+    D.S SD:0x4007ff00 %LE %LONG 0xffffffff  ;rank_info[3].size
+    D.S SD:0x4007ff04 %LE %LONG 0xffffffff
+    D.S SD:0x4007ff08 %LE %LONG 0x00000000  ;lca_reserved_mem.start
+    D.S SD:0x4007ff0c %LE %LONG 0x00000000
+    D.S SD:0x4007ff10 %LE %LONG 0x00000000  ;lca_reserved_mem.size
+    D.S SD:0x4007ff14 %LE %LONG 0x00000000
+    D.S SD:0x4007ff18 %LE %LONG 0x5fe00000  ;tee_reserved_mem.start
+    D.S SD:0x4007ff1c %LE %LONG 0x00000000
+    D.S SD:0x4007ff20 %LE %LONG 0x00200000  ;tee_reserved_mem.size
+    D.S SD:0x4007ff24 %LE %LONG 0x00000000
+    D.S SD:0x4007ff28 %LE %LONG 0x00000000  ;boot_reason
+    D.S SD:0x4007ff2c %LE %LONG 0x00000000  ;meta_com_type
+    D.S SD:0x4007ff30 %LE %LONG 0x00000000  ;meta_com_id
+    D.S SD:0x4007ff34 %LE %LONG 0x00000000  ;boot_time
+    D.S SD:0x4007fff8 %LE %LONG 0xffffffff  ;da_info.addr
+    D.S SD:0x4007ff3c %LE %LONG 0xffffffff  ;da_info.arg1
+    D.S SD:0x4007ff40 %LE %LONG 0xffffdfff  ;da_info.arg2
+    D.S SD:0x4007ff44 %LE %LONG 0xdfffffff  ;da_info.len
+    D.S SD:0x4007ff48 %LE %LONG 0xffffffef  ;da_info.sig_len
+    D.S SD:0x4007ff4c %LE %LONG 0xffffffff  ;sec_limit.magic_num
+    D.S SD:0x4007ff50 %LE %LONG 0xffffdfff  ;sec_limit.forbid_mode
+    D.S SD:0x4007ff54 %LE %LONG 0x40079a84  ;part_info pointer
+    D.S SD:0x4007ff58 %LE %LONG 0xfffffffd  ;md_type
+    D.S SD:0x4007ff5c %LE %LONG 0x00000000  ;ddr_reserve_enable
+    D.S SD:0x4007ff60 %LE %LONG 0x00000000  ;ddr_reserve_success
+    D.S SD:0x4007ff64 %LE %LONG 0x00000000  ;ddr_reserve_ready
+    D.S SD:0x4007ff68--0x4007ff77 %LE %LONG 0x00000000  ;ptp_volt_info
+    D.S SD:0x4007ff78 %LE %LONG 0x00199880  ;dram_buf_size
+    D.S SD:0x4007ff7c %LE %LONG 0x11003000  ;meta_uart_port
+    D.S SD:0x4007ff80 %LE %LONG 0x00000000  ;smc_boot_opt
+    D.S SD:0x4007ff84 %LE %LONG 0x00000003  ;lk_boot_opt
+    D.S SD:0x4007ff88 %LE %LONG 0x00000000  ;kernel_boot_opt
+    D.S SD:0x4007ff8c %LE %LONG 0x0012c000  ;non_secure_sram_addr
+    D.S SD:0x4007ff90 %LE %LONG 0x00004000  ;non_secure_sram_size
+    D.S SD:0x4007ff94 %LE %LONG 0x00000000  ;pl_version
+    D.S SD:0x4007ff98 %LE %LONG 0x00000000  ;
+    D.S SD:0x4007ff9c %LE %LONG 0x00000000  ;pl_imgver_status
+
+
+    ; magic number to notify lk that it is boot from ram (by cmm)
+    R.S R14 0xfefeefef
+)
+
+;print "loading logo image"
+;&logo_addr=0x8D900000;
+;d.load.binary ../../../../mediatek/custom/common/lk/logo/wvga/wvga_uboot.bmp &logo_addr
+
+print "loading lk image"
+IF &OPT_RAM_BOOT==0
+(
+	Data.Load.ELF &OutProjectPath/lk /gnu /nocode /RELPATH /PATH ".."
+)
+ELSE
+(
+	Data.Load.ELF &OutProjectPath/lk /gnu /RELPATH /PATH ".."
+)
+
+Y.SPATH.RESET  ; reset all source path
+Y.SPATH.SRD ../app
+Y.SPATH.SRD ../app/mt_boot
+Y.SPATH.SRD ../arch/arm
+Y.SPATH.SRD ../dev
+Y.SPATH.SRD ../include
+Y.SPATH.SRD ../kernel
+Y.SPATH.SRD ../lib
+Y.SPATH.SRD ../platform/mt6763
+
+;Core.Select 0
+
+Data.List
+;d.l
+;stop
+
+
+enddo
+

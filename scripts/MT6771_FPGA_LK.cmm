@@ -1,0 +1,141 @@
+;;-> # Option: Serial Wire or Parallel JTAG
+;; OPT_JTAG
+;; 0: Parallel
+;; 1: Serial Wire
+&OPT_JTAG=0
+
+;;-> # Option: Number of CPUs to be connected
+;; OPT_NR_CPUS
+&OPT_NR_CPUS=1
+
+;;-> # Option: RAM booting or EMMC booting
+;; OPT_RAM_BOOT
+;; 0: EMMC booting
+;; 1: RAM booting
+&OPT_RAM_BOOT=1
+
+;;-> # Option: FPGA with LCM
+;; OPT_WITH_LCM
+;; 0: LCM is not exist
+;; 1: LCM is exist
+&OPT_WITH_LCM=0
+
+
+&Project="fpga6771_64_emmc"
+; &OutProjectPath="../build-&Project"
+&OutProjectPath="../../../../../../../out/target/product/&Project/obj/BOOTLOADER_OBJ/build-&Project"
+
+
+SYStem.Down
+SYStem.Reset
+SYStem.Option EnReset ON
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset OFF
+;SYStem.JtagClock 10.MHz
+;SYStem.JtagClock 1.MHz
+SYStem.JtagClock 3.MHz
+
+IF &OPT_JTAG==0
+(
+    SYStem.Config SWDP OFF
+)
+ELSE IF &OPT_JTAG==1
+(
+    SYStem.Config SWDP ON
+)
+
+SYStem.CPU CORTEXA53
+SYStem.Config CORENUMBER &OPT_NR_CPUS
+;SYStem.Config COREBASE 0x80810000 0x80910000 0x80A10000 0x80B10000 0x80C10000 0x80D10000 0x80E10000 0x80F10000
+;SYStem.Config CTIBASE  0x80820000 0x80920000 0x80A20000 0x80B20000 0x80C20000 0x80D20000 0x80E20000 0x80F20000
+SYSTEM.CONFIG COREBASE 0x8D410000;
+SYStem.CONFIG CTIBASE 0x8D420000;
+
+SYStem.Up
+
+MMU.OFF
+
+SETUP.IMASKHLL ON
+SETUP.IMASKASM ON
+
+; Disable DABORT and PABORT breakpoint
+TrOnchip.Set dabort off
+TrOnchip.Set pabort off
+TrOnchip.Set undef off
+TrOnchip.Set irq off
+
+; Set default breakpoints to HW
+Break.SELect Program OnChip
+Break.SELect Read OnChip
+Break.SELect Write OnChip
+
+;
+; board init
+;
+; Disable acinactm
+D.S c:0x1020011C %LE %LONG 0x1
+D.S c:0x1020011C %LE %LONG 0x1
+
+; Disable wdt
+D.S c:0x10007000 %LE %LONG 0x22000064
+
+
+    ; disable polarty secure access
+    &i=0.
+    while &i<20.
+    (
+      &sec_pol=0x0C530A00+(&i*4);
+      d.s c:&sec_pol %le %long 0x0
+      &i=&i+1;
+    )
+
+
+; setup boot augu from PL
+IF &OPT_RAM_BOOT==1
+(
+    do MT6771_FPGA_DDR.cmm
+
+    IF &OPT_WITH_LCM==1
+    (
+        do MT6771_DSI0_B60384.cmm
+    )
+
+    R.S R4 0x4007f288
+)
+
+; test DRAM
+d.test SD:0x46000000--0x460003FF /random
+
+;print "loading logo image"
+;&logo_addr=0x8D900000;
+;d.load.binary ../../../../mediatek/custom/common/lk/logo/wvga/wvga_uboot.bmp &logo_addr
+
+print "loading lk image"
+IF &OPT_RAM_BOOT==0
+(
+	Data.Load.ELF &OutProjectPath/lk /gnu /nocode /RELPATH /PATH ".."
+)
+ELSE
+(
+	Data.Load.ELF &OutProjectPath/lk /gnu /RELPATH /PATH ".."
+)
+
+;Y.SPATH.RESET  ; reset all source path
+;Y.SPATH.SRD ../app
+;Y.SPATH.SRD ../app/mt_boot
+;Y.SPATH.SRD ../arch/arm
+;Y.SPATH.SRD ../dev
+;Y.SPATH.SRD ../include
+;Y.SPATH.SRD ../kernel
+;Y.SPATH.SRD ../lib
+;Y.SPATH.SRD ../platform/mt6771
+
+;Core.Select 0
+
+Data.List
+;d.l
+;stop
+
+
+enddo
+

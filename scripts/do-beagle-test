@@ -1,0 +1,6 @@
+#!/bin/sh
+
+export PROJECT=beagle-test
+
+make &&
+scp build-beagle-test/lk.img mbp:/Volumes/FOO/lk.img

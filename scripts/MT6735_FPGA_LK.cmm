@@ -1,0 +1,205 @@
+;;-> # Option: Serial Wire or Parallel JTAG
+;; OPT_JTAG
+;; 0: Parallel
+;; 1: Serial Wire
+&OPT_JTAG=0
+
+;;-> # Option: Number of CPUs to be connected
+;; OPT_NR_CPUS
+&OPT_NR_CPUS=1
+
+;;-> # Option: RAM booting or EMMC booting
+;; OPT_RAM_BOOT
+;; 0: EMMC booting
+;; 1: RAM booting
+&OPT_RAM_BOOT=1
+
+;;-> # Option: FPGA with LCM
+;; OPT_WITH_LCM
+;; 0: LCM is not exist
+;; 1: LCM is exist
+&OPT_WITH_LCM=0
+
+
+&Project="fpga6735_64"
+&OutProjectPath="../build-&Project"
+
+
+SYStem.Down
+SYStem.Reset
+SYStem.Option EnReset ON
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset OFF
+SYStem.JtagClock 10.MHz
+
+IF &OPT_JTAG==0
+(
+    SYStem.Config SWDP OFF
+)
+ELSE IF &OPT_JTAG==1
+(
+    SYStem.Config SWDP ON
+)
+
+SYStem.CPU CORTEXA53
+SYStem.Config CORENUMBER &OPT_NR_CPUS
+SYStem.Config COREBASE 0x80810000 0x80910000 0x80A10000 0x80B10000 0x80C10000 0x80D10000 0x80E10000 0x80F10000
+SYStem.Config CTIBASE  0x80820000 0x80920000 0x80A20000 0x80B20000 0x80C20000 0x80D20000 0x80E20000 0x80F20000
+
+SYStem.Up
+
+MMU.OFF
+
+SETUP.IMASKHLL ON
+SETUP.IMASKASM ON
+
+; Disable DABORT and PABORT breakpoint
+TrOnchip.Set dabort off
+TrOnchip.Set pabort off
+TrOnchip.Set undef off
+TrOnchip.Set irq off
+
+; Set default breakpoints to HW
+Break.SELect Program OnChip
+Break.SELect Read OnChip
+Break.SELect Write OnChip
+
+;
+; board init
+;
+; Disable acinactm
+D.S c:0x1020011C %LE %LONG 0x1
+D.S c:0x1020011C %LE %LONG 0x1
+
+; Disable wdt
+D.S c:0x10212000 %LE %LONG 0x22000064
+
+; setup boot augu from PL
+IF &OPT_RAM_BOOT==1
+(
+    do MT6735_FPGA_DDR.cmm
+
+    IF &OPT_WITH_LCM==1
+    (
+        do MT6735_DSI0_B60384.cmm
+    )
+
+    R.S R4 0x4007f288
+    D.S SD:0x4007f288 %LE %LONG 0x504c504c  ;maggic_number
+    D.S SD:0x4007f28c %LE %LONG 0x00000000  ;boot_mode
+    D.S SD:0x4007f290 %LE %LONG 0x00000000  ;e_flag
+    D.S SD:0x4007f294 %LE %LONG 0x11003000  ;log_port
+    D.S SD:0x4007f298 %LE %LONG 0x000e1000  ;log_baudrate
+    D.S SD:0x4007f29c %LE %LONG 0xffff0201  ;reserved[2], part_num, log_enable
+    D.S SD:0x4007f2a0 %LE %LONG 0x00000002  ;dram_rank_num
+    D.S SD:0x4007f2a4 %LE %LONG 0x10000000  ;dram_rank_size[0]
+    D.S SD:0x4007f2a8 %LE %LONG 0x10000000  ;dram_rank_size[1]
+    D.S SD:0x4007f2ac %LE %LONG 0xdfffffff  ;dram_rank_size[2]
+    D.S SD:0x4007f2b0 %LE %LONG 0xfffffdff  ;dram_rank_size[3]
+    D.S SD:0x4007f2b4 %LE %LONG 0xffffffff  
+    D.S SD:0x4007f2b8 %LE %LONG 0x00000002  ;mblock_num
+    D.S SD:0x4007f2bc %LE %LONG 0x00000000  
+    D.S SD:0x4007f2c0 %LE %LONG 0x40000000  ;mblock[0].start
+    D.S SD:0x4007f2c4 %LE %LONG 0x00000000  
+    D.S SD:0x4007f2c8 %LE %LONG 0x10000000  ;mblock[0].size
+    D.S SD:0x4007f2cc %LE %LONG 0x00000000  
+    D.S SD:0x4007f2d0 %LE %LONG 0x00000000  ;mblock[0].rank
+    D.S SD:0x4007f2d4 %LE %LONG 0x00000000  
+    D.S SD:0x4007f2d8 %LE %LONG 0x50000000  ;mblock[1].start
+    D.S SD:0x4007f2dc %LE %LONG 0x00000000  
+    D.S SD:0x4007f2e0 %LE %LONG 0x0fe00000  ;mblock[1].size
+    D.S SD:0x4007f2e4 %LE %LONG 0x00000000
+    D.S SD:0x4007f2e8 %LE %LONG 0x00000001  ;mblock[1].rank
+    D.S SD:0x4007f2ec %LE %LONG 0x00000000
+    D.S SD:0x4007f2f0 %LE %LONG 0x00000000  ;mblock[2].start
+    D.S SD:0x4007f2f4 %LE %LONG 0x00000000
+    D.S SD:0x4007f2f8 %LE %LONG 0x00000000  ;mblock[2].size
+    D.S SD:0x4007f2fc %LE %LONG 0x00000000
+    D.S SD:0x4007f300 %LE %LONG 0x00000000  ;mblock[2].rank
+    D.S SD:0x4007f304 %LE %LONG 0x00000000
+    D.S SD:0x4007f308 %LE %LONG 0x00000000  ;mblock[3].start
+    D.S SD:0x4007f30c %LE %LONG 0x00000000
+    D.S SD:0x4007f310 %LE %LONG 0x00000000  ;mblock[3].size
+    D.S SD:0x4007f314 %LE %LONG 0x00000000
+    D.S SD:0x4007f318 %LE %LONG 0x00000000  ;mblock[3].rank
+    D.S SD:0x4007f31c %LE %LONG 0x00000000
+    D.S SD:0x4007f320 %LE %LONG 0x00000002  ;orig_dram_info.rank_num
+    D.S SD:0x4007f324 %LE %LONG 0xffffffff
+    D.S SD:0x4007f328 %LE %LONG 0x40000000  ;rank_info[0].start
+    D.S SD:0x4007f32c %LE %LONG 0x00000000
+    D.S SD:0x4007f330 %LE %LONG 0x10000000  ;rank_info[0].size
+    D.S SD:0x4007f334 %LE %LONG 0x00000000
+    D.S SD:0x4007f338 %LE %LONG 0x50000000  ;rank_info[1].start
+    D.S SD:0x4007f33c %LE %LONG 0x00000000
+    D.S SD:0x4007f340 %LE %LONG 0x10000000  ;rank_info[1].size
+    D.S SD:0x4007f344 %LE %LONG 0x00000000
+    D.S SD:0x4007f348 %LE %LONG 0xffffffff  ;rank_info[2].start
+    D.S SD:0x4007f34c %LE %LONG 0xffffffff
+    D.S SD:0x4007f350 %LE %LONG 0xfffeffff  ;rank_info[2].size
+    D.S SD:0x4007f354 %LE %LONG 0xfffffffd
+    D.S SD:0x4007f358 %LE %LONG 0xffffffff  ;rank_info[3].start
+    D.S SD:0x4007f35c %LE %LONG 0xffffffff
+    D.S SD:0x4007f360 %LE %LONG 0xffffffff  ;rank_info[3].size
+    D.S SD:0x4007f364 %LE %LONG 0xffffffff
+    D.S SD:0x4007f368 %LE %LONG 0x00000000  ;lca_reserved_mem.start
+    D.S SD:0x4007f36c %LE %LONG 0x00000000
+    D.S SD:0x4007f370 %LE %LONG 0x00000000  ;lca_reserved_mem.size
+    D.S SD:0x4007f374 %LE %LONG 0x00000000
+    D.S SD:0x4007f378 %LE %LONG 0x5fe00000  ;tee_reserved_mem.start
+    D.S SD:0x4007f37c %LE %LONG 0x00000000
+    D.S SD:0x4007f380 %LE %LONG 0x00200000  ;tee_reserved_mem.size
+    D.S SD:0x4007f384 %LE %LONG 0x00000000
+    D.S SD:0x4007f388 %LE %LONG 0x00000000  ;boot_reason
+    D.S SD:0x4007f38c %LE %LONG 0x00000000  ;meta_com_type
+    D.S SD:0x4007f390 %LE %LONG 0x00000000  ;meta_com_id
+    D.S SD:0x4007f394 %LE %LONG 0x00000000  ;boot_time
+    D.S SD:0x4007f398 %LE %LONG 0xffffffff  ;da_info.addr
+    D.S SD:0x4007f39c %LE %LONG 0xffffffff  ;da_info.arg1
+    D.S SD:0x4007f3a0 %LE %LONG 0xffffdfff  ;da_info.arg2
+    D.S SD:0x4007f3a4 %LE %LONG 0xdfffffff  ;da_info.len
+    D.S SD:0x4007f3a8 %LE %LONG 0xffffffef  ;da_info.sig_len
+    D.S SD:0x4007f3ac %LE %LONG 0xffffffff  ;sec_limit.magic_num
+    D.S SD:0x4007f3b0 %LE %LONG 0xffffdfff  ;sec_limit.forbid_mode
+    D.S SD:0x4007f3b4 %LE %LONG 0x40079a84  ;part_info pointer
+    D.S SD:0x4007f3b8 %LE %LONG 0xfffffffd  ;md_type
+    D.S SD:0x4007f3bc %LE %LONG 0x00000000  ;ddr_reserve_enable
+    D.S SD:0x4007f3c0 %LE %LONG 0x00000000  ;ddr_reserve_success
+    D.S SD:0x4007f3c4 %LE %LONG 0x00199880  ;dram_buf_size
+    D.S SD:0x4007f3c8 %LE %LONG 0x11003000  ;meta_uart_port
+    D.S SD:0x4007f3cc %LE %LONG 0x00000000  ;smc_boot_opt
+    D.S SD:0x4007f3d0 %LE %LONG 0x00000003  ;lk_boot_opt
+    D.S SD:0x4007f3d4 %LE %LONG 0x00000000  ;kernel_boot_opt
+    D.S SD:0x4007f3d8 %LE %LONG 0x0012c000  ;non_secure_sram_addr
+    D.S SD:0x4007f3dc %LE %LONG 0x00004000  ;non_secure_sram_size
+)
+
+;print "loading logo image"
+;&logo_addr=0x8D900000;
+;d.load.binary ../../../../mediatek/custom/common/lk/logo/wvga/wvga_uboot.bmp &logo_addr
+
+print "loading lk image"
+IF &OPT_RAM_BOOT==0
+(
+	Data.Load.ELF &OutProjectPath/lk /gnu /nocode /RELPATH /PATH ".."
+)
+ELSE
+(
+	Data.Load.ELF &OutProjectPath/lk /gnu /RELPATH /PATH ".."
+)
+
+;Y.SPATH.RESET  ; reset all source path
+;Y.SPATH.SRD ../app
+;Y.SPATH.SRD ../app/mt_boot
+;Y.SPATH.SRD ../arch/arm
+;Y.SPATH.SRD ../dev
+;Y.SPATH.SRD ../include
+;Y.SPATH.SRD ../kernel
+;Y.SPATH.SRD ../lib
+;Y.SPATH.SRD ../platform/mt6735
+
+;Core.Select 0
+
+Data.List
+
+enddo
+

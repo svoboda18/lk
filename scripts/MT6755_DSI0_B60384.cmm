@@ -1,0 +1,670 @@
+;------------------------------------------------------------------------
+; PHY Timing Control
+;------------------------------------------------------------------------
+;PLL freq = 26x(fbkdiv)x(prediv)/(posdiv)
+; prediv = 0:/1, 1:/2, 2,3:/4
+; posdiv = 0:/1, 1:/2, 2:/4, 3:/8, 4:/16
+; txdiv0,txdiv1 is removed from B60384
+
+&fbkdiv=0x09
+&prediv=0x00
+&posdiv=0x03
+
+;------------------------------------------------------------------------
+; Address define (Project dependant)
+;------------------------------------------------------------------------
+;;do K2_DSI0_address_def.cmm
+  ;------------------------------------------------------------------------
+  ; MMSYS register map
+  ;------------------------------------------------------------------------
+  &mmsys_base=0x14000000
+  
+  &MMSYS_CG_CLR0=&mmsys_base+0x00108
+  &MMSYS_CG_CLR1=&mmsys_base+0x00118
+  &LCM_RST_B=&mmsys_base+0x00150
+  
+  ;------------------------------------------------------------------------
+  ; I2C register map
+  ;------------------------------------------------------------------------
+  &i2c_base=0x14019000
+  
+  ;------------------------------------------------------------------------
+  ; MIPI TX config register map
+  ;------------------------------------------------------------------------
+  &mipi_tx_config_base=0x10215000
+  
+  &DSI_CON=&mipi_tx_config_base+0x000
+  &DSI_CLOCK_LANE=&mipi_tx_config_base+0x004
+  &DSI_DATA_LANE_0=&mipi_tx_config_base+0x008
+  &DSI_DATA_LANE_1=&mipi_tx_config_base+0x00c
+  &DSI_DATA_LANE_2=&mipi_tx_config_base+0x010
+  &DSI_DATA_LANE_3=&mipi_tx_config_base+0x014
+  &DSI_TOP_CON=&mipi_tx_config_base+0x040
+  &DSI_BG_CON=&mipi_tx_config_base+0x044
+  &DSI_PLL_CON0=&mipi_tx_config_base+0x050
+  &DSI_PLL_CON1=&mipi_tx_config_base+0x054
+  &DSI_PLL_CON2=&mipi_tx_config_base+0x058
+  &DSI_PLL_CON3=&mipi_tx_config_base+0x05c
+  &DSI_PLL_CHG=&mipi_tx_config_base+0x060
+  &DSI_PLL_TOP=&mipi_tx_config_base+0x064
+  &DSI_PLL_PWR=&mipi_tx_config_base+0x068
+  &DSI_GPI_EN=&mipi_tx_config_base+0x074
+  &DSI_GPI_PULL=&mipi_tx_config_base+0x078
+  &DSI_PHY_SEL=&mipi_tx_config_base+0x07c
+  &DSI_SW_CTRL_EN=&mipi_tx_config_base+0x080
+  &DSI_SW_CTRL_CON0=&mipi_tx_config_base+0x084
+  &DSI_SW_CTRL_CON1=&mipi_tx_config_base+0x088
+  &DSI_SW_CTRL_CON2=&mipi_tx_config_base+0x08c
+  &DSI_DBG_CON=&mipi_tx_config_base+0x090
+  &DSI_DBG_OUT=&mipi_tx_config_base+0x094
+  &DSI_APB_ASYNC_STA=&mipi_tx_config_base+0x098
+  
+  ;------------------------------------------------------------------------
+  ; MIPI RX config register map
+  ;------------------------------------------------------------------------
+  &mipi_rx_ana_base=0x10217000
+  &mipi_rx_config_base=0x15008000
+  
+  ;------------------------------------------------------------------------
+  ; DSI register map
+  ;------------------------------------------------------------------------
+  &DSI_BASE=&mmsys_base+0x00011000
+  
+  &DSI_START=&DSI_BASE+0x00
+  &DSI_INTSTA=&DSI_BASE+0x0c
+  &DSI_COM_CON=&DSI_BASE+0x10
+  &DSI_MODE_CON=&DSI_BASE+0x14
+  &DSI_TXRX_CON=&DSI_BASE+0x18
+  &DSI_PSCON=&DSI_BASE+0x1C
+  &DSI_VSA_NL=&DSI_BASE+0x20
+  &DSI_VBP_NL=&DSI_BASE+0x24
+  &DSI_VFP_NL=&DSI_BASE+0x28
+  &DSI_VACT_NL=&DSI_BASE+0x2c
+  &DSI_HSA_WC=&DSI_BASE+0x50
+  &DSI_HBP_WC=&DSI_BASE+0x54
+  &DSI_HFP_WC=&DSI_BASE+0x58
+  &DSI_BLLP_WC=&DSI_BASE+0x5c
+  &DSI_CMDQ_CON=&DSI_BASE+0x60
+  &DSI_HSTX_CKLP_WC=&DSI_BASE+0x64
+  &DSI_RACK=&DSI_BASE+0x84
+  &DSI_MEM_CONTI=&DSI_BASE+0x90
+  
+  &DSI_PHY_CON=&DSI_BASE+0x100
+  &DSI_PHY_LCCON=&DSI_BASE+0x104
+  &DSI_PHY_LD0CON=&DSI_BASE+0x108
+  &DSI_PHY_TIMCON0=&DSI_BASE+0x110
+  &DSI_PHY_TIMCON1=&DSI_BASE+0x114
+  &DSI_PHY_TIMCON2=&DSI_BASE+0x118
+  &DSI_PHY_TIMCON3=&DSI_BASE+0x11C
+  &DSI_PHY_TIMCON4=&DSI_BASE+0x120
+  
+  &DSI_VM_CMD_CON=&DSI_BASE+0x130
+  &DSI_VM_CMD_DATA0=&DSI_BASE+0x134
+  &DSI_VM_CMD_DATA4=&DSI_BASE+0x138
+  &DSI_VM_CMD_DATA8=&DSI_BASE+0x13c
+  &DSI_VM_CMD_DATAC=&DSI_BASE+0x140
+  &DSI_VM_CMD_DATA10=&DSI_BASE+0x180
+  &DSI_VM_CMD_DATA14=&DSI_BASE+0x184
+  &DSI_VM_CMD_DATA18=&DSI_BASE+0x188
+  &DSI_VM_CMD_DATA1C=&DSI_BASE+0x18C
+  
+  &DSI_DEBUG_SEL=&DSI_BASE+0x170
+  &DSI_BIST_PATTERN=&DSI_BASE+0x178
+  &DSI_BIST_CON=&DSI_BASE+0x17c
+  
+  &DSI_CMDQ_BASE=&DSI_BASE+0x200
+  &DSI_CMDQ_0=&DSI_CMDQ_BASE+0x00
+  &DSI_CMDQ_1=&DSI_CMDQ_BASE+0x04
+  &DSI_CMDQ_2=&DSI_CMDQ_BASE+0x08
+  &DSI_CMDQ_3=&DSI_CMDQ_BASE+0x0c
+  &DSI_CMDQ_4=&DSI_CMDQ_BASE+0x10
+  &DSI_CMDQ_5=&DSI_CMDQ_BASE+0x14
+  &DSI_CMDQ_6=&DSI_CMDQ_BASE+0x18
+  &DSI_CMDQ_7=&DSI_CMDQ_BASE+0x1c
+  &DSI_CMDQ_8=&DSI_CMDQ_BASE+0x20
+  &DSI_CMDQ_9=&DSI_CMDQ_BASE+0x24
+  
+  ;------------------------------------------------------------------------
+  ; RDMA register map
+  ;------------------------------------------------------------------------
+  &disp_rdma_base=&mmsys_base+0x00008000
+  
+  &DISP_RDMA_INT_ENABLE=&disp_rdma_base+0x000
+  &DISP_RDMA_INT_STATUS=&disp_rdma_base+0x004
+  &DISP_RDMA_GLOBAL_CON=&disp_rdma_base+0x010
+  &DISP_RDMA_SIZE_CON_0=&disp_rdma_base+0x014
+  &DISP_RDMA_SIZE_CON_1=&disp_rdma_base+0x018
+  &DISP_RDMA_TARGET_LINE=&disp_rdma_base+0x01c
+  &DISP_RDMA_MEM_CON=&disp_rdma_base+0x024
+  &DISP_RDMA_MEM_SRC_PITCH=&disp_rdma_base+0x02c
+  &DISP_RDMA_GMC_SETTING_0=&disp_rdma_base+0x030
+  &DISP_RDMA_SLOW_CON=&disp_rdma_base+0x034
+  &DISP_RDMA_GMC_SETTING_1=&disp_rdma_base+0x038
+  &DISP_RDMA_FIFO_CON=&disp_rdma_base+0x040
+  &DISP_RDMA_MEM_START_ADDR=&disp_rdma_base+0xf00
+  
+  ;------------------------------------------------------------------------
+  ; UFOE register map
+  ;------------------------------------------------------------------------
+  &disp_ufoe_base=&mmsys_base+0x00010000
+  &DISP_UFO_START=&mmsys_base+0x00
+  
+  ;------------------------------------------------------------------------
+  ; DISP Split
+  ;------------------------------------------------------------------------
+  &disp_split0_base=&mmsys_base+0x00018000
+  &disp_split1_base=&mmsys_base+0x00019000
+  
+  &DISP_SPLIT0_SPLIT_ENABLE=&disp_split0_base+0x00
+  &DISP_SPLIT0_SPLIT_SW_RESET=&disp_split0_base+0x04
+  
+  &DISP_SPLIT1_SPLIT_ENABLE=&disp_split1_base+0x00
+  &DISP_SPLIT1_SPLIT_SW_RESET=&disp_split1_base+0x04
+  
+  ;------------------------------------------------------------------------
+  ; Mutex register map
+  ;------------------------------------------------------------------------
+  &disp_mutex_base=&mmsys_base+0x00014000
+  
+  &DISP_MUTEX_INTEN=&disp_mutex_base+0x00
+  &DISP_MUTEX_INTSTA=&disp_mutex_base+0x04
+  &DISP_MUTEX0_SOF=&disp_mutex_base+0x30
+  &DISP_MUTEX0_MOD=&disp_mutex_base+0x2c
+  &DISP_MUTEX0_EN=&disp_mutex_base+0x20
+  &DISP_MUTEX0_RST=&disp_mutex_base+0x28
+  &DISP_MUTEX1_SOF=&disp_mutex_base+0x50
+  &DISP_MUTEX1_MOD=&disp_mutex_base+0x4c
+  &DISP_MUTEX1_EN=&disp_mutex_base+0x40
+  &DISP_MUTEX1_RST=&disp_mutex_base+0x48
+  
+  ;------------------------------------------------------------------------
+  ; Mux sel
+  ;------------------------------------------------------------------------
+  &DISP_UFOE_MOUT_EN=&mmsys_base+0x03c
+  &DISP_PATH0_SEL_IN=&mmsys_base+0x090
+  &DISP_PATH1_SEL_IN=&mmsys_base+0x094
+  &DISP_UFOE_SEL_IN=&mmsys_base+0x060
+  &DISP_DSI0_SEL_IN=&mmsys_base+0x064
+  &DISP_DSI1_SEL_IN=&mmsys_base+0x0a8
+  &DISP_RDMA0_SOUT_SEL_IN=&mmsys_base+0x06c
+  &DISP_RDMA1_SOUT_SEL_IN=&mmsys_base+0x0b4
+  &DISP_RDMA2_SOUT_SEL_IN=&mmsys_base+0x0b8
+  &DISP_PATH0_SOUT_SEL_IN=&mmsys_base+0x0c4
+  &DISP_PATH1_SOUT_SEL_IN=&mmsys_base+0x0c8
+  
+  ;------------------------------------------------------------------------
+  ; Clock source and debug settings
+  ;------------------------------------------------------------------------
+  D.S SD:&MMSYS_CG_CLR0 %LE %LONG 0xffffffff ; clear cg0
+  D.S SD:&MMSYS_CG_CLR1 %LE %LONG 0xffffffff ; clear cg1
+  ;;D.S SD:&mmsys_base+0x00c08 %LE %LONG 0x00000201 ; fpga con
+  ;;D.S SD:&mmsys_base+0x0004c %LE %LONG 0x00000000 ; dsi out 
+
+;------------------------------------------------------------------------
+;; I2c write function
+;------------------------------------------------------------------------
+&i2c_write_loop=0;
+&i2c_slave_addr=0;
+&i2c_write_addr=0;
+&i2c_write_data=0;
+&i2c_read_data=0;
+
+while (&i2c_write_loop<0x19)
+(
+; DSI GPIO mux select
+;----------------------------
+if (&i2c_write_loop==0x00)
+(
+  &i2c_slave_addr=0x18;
+  &i2c_write_addr=0x00;
+  &i2c_write_data=0x10;
+)
+
+; ABB reference clock LPF
+;----------------------------
+if (&i2c_write_loop==0x01)
+(
+  &i2c_slave_addr=0x20;
+  &i2c_write_addr=0x42;
+  &i2c_write_data=0x01;
+)
+
+; Reference clock from ARMPLL
+;----------------------------
+if (&i2c_write_loop==0x02)
+(
+  &i2c_slave_addr=0x20;
+  &i2c_write_addr=0x43;
+  &i2c_write_data=0x01;
+)
+if (&i2c_write_loop==0x03)
+(
+  &i2c_slave_addr=0x20;
+  &i2c_write_addr=0x05;
+  &i2c_write_data=0x01;
+)
+if (&i2c_write_loop==0x04)
+(
+  &i2c_slave_addr=0x20;
+  &i2c_write_addr=0x22;
+  &i2c_write_data=0x01;
+)
+
+; MIPI TX Config
+;----------------------------
+; DSI_BG_CON (fast_charge=0)
+if (&i2c_write_loop==0x05)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x44;
+  &i2c_write_data=0x83;
+)
+; DSI_TOP_CON
+if (&i2c_write_loop==0x06)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x40;
+  &i2c_write_data=0x82;
+)
+; DSI0_CON
+if (&i2c_write_loop==0x07)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x00;
+  &i2c_write_data=0x03;
+)
+; DSI_PLL_PWR (pwr_on=1)
+if (&i2c_write_loop==0x08)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x68;
+  &i2c_write_data=0x03;
+)
+; DSI_PLL_PWR (iso_en=0)
+if (&i2c_write_loop==0x09)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x68;
+  &i2c_write_data=0x01;
+)
+; DSI_PLL0_CON0 
+; [2:1] prediv
+; [4:3] txdiv0 (not used)
+; [6:5] txdiv1 (not used)
+; [9:7] posdiv
+if (&i2c_write_loop==0x0a)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x50;
+  &i2c_write_data=((&posdiv&0x1)<<0x7)|(&prediv<<0x1);
+)
+if (&i2c_write_loop==0x0b)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x51;
+  &i2c_write_data=(&posdiv>>0x1)&0x3;
+)
+; DSI_PLL0_CON1
+; [0] fra_en
+; [2] ssc_en
+if (&i2c_write_loop==0x0c)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x54;
+  &i2c_write_data=0x01;
+)
+; DSI_PLL0_CON2
+; [23:0]  pcw (fractional)
+; [30:24] pcw (integer)
+if (&i2c_write_loop==0x0d)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x58;
+  &i2c_write_data=0x00;
+)
+if (&i2c_write_loop==0x0e)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x59;
+  &i2c_write_data=0x00;
+)
+if (&i2c_write_loop==0x0f)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x5a;
+  &i2c_write_data=0x00;
+)
+if (&i2c_write_loop==0x10)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x5b;
+  &i2c_write_data=(&fbkdiv<<2)
+)
+
+; DSI_CLOCK_LANE, [4]:CKLANE_EN=1
+if (&i2c_write_loop==0x11)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x04;
+  &i2c_write_data=0x11;
+)
+; DSI_DATA_LANE_0
+if (&i2c_write_loop==0x12)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x08;
+  &i2c_write_data=0x01;
+)
+; DSI_DATA_LANE_1
+if (&i2c_write_loop==0x13)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x0c;
+  &i2c_write_data=0x01;
+)
+; DSI_DATA_LANE_2
+if (&i2c_write_loop==0x14)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x10;
+  &i2c_write_data=0x01;
+)
+; DSI_DATA_LANE_3
+if (&i2c_write_loop==0x15)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x14;
+  &i2c_write_data=0x01;
+)
+
+; DSI_PLL_TOP 
+; [9:8] mppll_preserve (s2q_div)
+if (&i2c_write_loop==0x16)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x64;
+  &i2c_write_data=0x20;
+)
+
+; MPPLL starts
+;----------------------------
+; DSI_PLL0_CON0 
+; [0] pll_en
+if (&i2c_write_loop==0x17)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x50;
+  &i2c_write_data=((&posdiv&0x1)<<0x7)|(&prediv<<0x1)|0x1;
+)
+
+; MIPI TX source control
+;----------------------------
+if (&i2c_write_loop==0x18)
+(
+  &i2c_slave_addr=0x30;
+  &i2c_write_addr=0x28;
+  &i2c_write_data=0x00;
+)
+
+
+;;------------------------------------------
+;; I2C write
+;;------------------------------------------
+;set 2 byte transfer (address + data)
+D.S SD:&i2c_base+0x014 %LE %LONG 0x002;
+;1 transac
+D.S SD:&i2c_base+0x018 %LE %LONG 0x01;
+;set slave address
+D.S SD:&i2c_base+0x004 %LE %LONG (&i2c_slave_addr<<0x1);
+;prepare data to fifo
+D.S SD:&i2c_base+0x000 %LE %LONG &i2c_write_addr;
+D.S SD:&i2c_base+0x000 %LE %LONG &i2c_write_data;
+;trigger
+D.S SD:&i2c_base+0x024 %LE %LONG 0x01;
+;wait i2c done
+while ((data.long(SD:&i2c_base+0x00C)&0x1)!=0x1)
+(
+  wait 10.ms 
+)
+;write 1 clear
+D.S SD:&i2c_base+0x00C %LE %LONG 0xff;
+
+;;------------------------------------------
+;; I2C read (write address + read data)
+;;------------------------------------------
+;set 1 byte transfer (address)
+D.S SD:&i2c_base+0x014 %LE %LONG 0x001;
+;1 transac
+D.S SD:&i2c_base+0x018 %LE %LONG 0x01;
+;set slave address
+D.S SD:&i2c_base+0x004 %LE %LONG (&i2c_slave_addr<<0x1);
+;prepare data to fifo
+D.S SD:&i2c_base+0x000 %LE %LONG &i2c_write_addr;
+;trigger
+D.S SD:&i2c_base+0x024 %LE %LONG 0x01;
+;wait i2c done
+while ((data.long(SD:&i2c_base+0x00C)&0x1)!=0x1)
+(
+  wait 10.ms 
+)
+;write 1 clear
+D.S SD:&i2c_base+0x00C %LE %LONG 0xff;
+
+;set 1 byte transfer (data)
+D.S SD:&i2c_base+0x014 %LE %LONG 0x001;
+;1 transac
+D.S SD:&i2c_base+0x018 %LE %LONG 0x01;
+;set slave address
+D.S SD:&i2c_base+0x004 %LE %LONG ((&i2c_slave_addr<<0x1)+0x1) ;[0]:write or read
+;trigger
+D.S SD:&i2c_base+0x024 %LE %LONG 0x01;
+;wait i2c done
+while ((data.long(SD:&i2c_base+0x00C)&0x1)!=0x1)
+(
+  wait 10.ms 
+)
+;write 1 clear
+D.S SD:&i2c_base+0x00C %LE %LONG 0xff;
+
+&i2c_read_data=data.long(SD:&i2c_base+0x000);
+
+if (&i2c_read_data==&i2c_write_data)
+(
+PRINT "I2C Success, write addr = " &i2c_write_addr ", read_data=" &i2c_read_data
+)
+else
+(
+PRINT "I2C Fail, write addr = " &i2c_write_addr ", write data = " &i2c_write_data ", read_data=" &i2c_read_data
+wait 5000.ms
+)
+
+&i2c_write_loop=&i2c_write_loop+0x01;
+)
+
+wait 500.ms  ;wait pll stable
+
+PRINT "PLL setting finish!!"
+
+;------------------------------------------------------------------------
+; DSI / LCM Reset
+;------------------------------------------------------------------------
+D.S SD:&LCM_RST_B %LE %LONG 0x00000000
+D.S SD:&LCM_RST_B %LE %LONG 0x00000001
+
+;dsi reset - must reset after DSI clock is on
+;dig_mipi_tx reset
+D.S SD:&DSI_COM_CON %LE %LONG 0x00000005
+D.S SD:&DSI_COM_CON %LE %LONG 0x00000000
+
+;------------------------------------------------------------------------
+; DSI Timing Parameters
+;------------------------------------------------------------------------
+&posdiv_real=0
+&prediv_real=0
+
+if (&posdiv==0x0)
+(
+  &posdiv_real=0x01
+)
+else if (&posdiv==0x1)
+(
+  &posdiv_real=0x02
+)
+else if (&posdiv==0x2)
+(
+  &posdiv_real=0x04
+)
+else if (&posdiv==0x3)
+(
+  &posdiv_real=0x08
+)
+else
+(
+  &posdiv_real=0x10
+)
+
+if (&prediv==0x0)
+(
+  &prediv_real=0x01
+)
+else if (&prediv==0x1)
+(
+  &prediv_real=0x02
+)
+else if (&prediv==0x2)
+(
+  &prediv_real=0x04
+)
+
+print "posdiv=" &posdiv
+print "posdiv_real=" &posdiv_real
+print "prediv=" &prediv
+print "prediv_real=" &prediv_real
+
+
+; cycle time = 1000/(PLL freq/4)
+;--------------------------------------------------------------------
+&cycle_time=0  
+&cycle_time=(0x3E8*0x4*&posdiv_real)/(&fbkdiv*&prediv_real*0x1a)+1
+print "CYCLE TIME = " &cycle_time
+
+; ui = cycle_time/8
+;--------------------------------------------------------------------
+&ui=0  
+&ui=(0x3E8*&posdiv_real)/(&fbkdiv*&prediv_real*0x1a*0x2)+1
+print "UI = " &ui
+
+; lpx = 100ns (HW limit: not less than 2)
+;--------------------------------------------------------------------
+&lpx=0;
+&lpx=(0x64/&cycle_time)+0x1
+if (&lpx<0x02)
+(
+  &lpx=0x02
+)
+print "LPX = " &lpx
+
+; hs_prep : 40ns+4*UI ~ 85ns+6*UI
+; hs_prep = 64ns+5*UI
+;--------------------------------------------------------------------
+&hs_prep=((0x40+0x05*&ui)/&cycle_time);
+if  (&hs_prep<0x1)
+(
+  &hs_prep=0x1
+)
+print "hs_prep = " &hs_prep
+
+; hs_prep+hs_zero : > 145ns+10*UI
+; hs_zero = (200+10*UI) - hs_prep
+;--------------------------------------------------------------------
+&hs_zero=((0xc8+0x0a*&ui)/&cycle_time)-&hs_prep;
+print "hs_zero = " &hs_zero
+
+; hs_trail : max(8*UI, 60ns+4*UI) ~ 105ns+12*UI (T_eot)
+; hs_trail = 96ns+4*UI
+;--------------------------------------------------------------------
+&hs_trail=0
+&hs_trail_pre=0x60+0x04*&ui 
+if (&hs_trail_pre>&cycle_time)
+(
+  &hs_trail=(&hs_trail_pre/&cycle_time)+1
+)
+else
+(
+  &hs_trail=0x2
+)
+print "hs_trail = " &hs_trail
+
+; hs_exit : > 100ns 
+; hs_exit = 200ns
+;--------------------------------------------------------------------
+&hs_exit=(0xc8/&cycle_time)+0x1
+print "hs_exit = " &hs_exit
+
+; ta_go  = 4*lpx
+; ta_get = 5*lpx
+; ta_sure : lpx ~ 2*lpx
+;--------------------------------------------------------------------
+&ta_go=4*&lpx
+&ta_get=5*&lpx
+&ta_sure=&lpx+(&lpx/0x02)
+print "ta_go = " &ta_go
+print "ta_get = " &ta_get
+print "ta_sure = " &ta_sure
+
+; clk_hs_prep : 38ns ~ 95ns
+; clk_hs_prep = 64ns
+;--------------------------------------------------------------------
+&clk_hs_prep=(0x40/&cycle_time)
+if (&clk_hs_prep<0x1)
+(
+  &clk_hs_prep=0x1
+)
+print "clk_prep=" &clk_hs_prep
+
+; clk_hs_prep+clk_zero : > 300ns
+; clk_zero = 400ns - clk_hs_perp
+;--------------------------------------------------------------------
+&clk_zero=(0x190/&cycle_time)-&clk_hs_prep
+print "clk_zero = " &clk_zero
+
+; clk_trail : 60ns ~ 105ns+12*UI (T_eot)
+; clk_trail = 64ns
+;--------------------------------------------------------------------
+&clk_trail=(0x60/&cycle_time)+1
+if (&clk_trail<0x2)
+(
+  &clk_trail=0x2
+)
+print "clk_trail = " &clk_trail
+
+; clk_exit : > 100ns 
+; clk_exit = 200ns
+;--------------------------------------------------------------------
+&clk_exit=(0xc8/&cycle_time)+0x1
+print "clk_exit = " &clk_exit
+
+; clk_post : > 60ns+52*UI
+; clk_post = 64ns+52*UI
+;--------------------------------------------------------------------
+&clk_post=((0x40+0x34*&ui)/&cycle_time)+0x1
+print "clk_post=" &clk_post
+
+
+&timcon0=(&hs_trail<<0x018)|(&hs_zero<<0x10)|(&hs_prep<<0x08)|&lpx;
+&timcon1=(&hs_exit<<0x18)|(&ta_get<<0x10)|(&ta_sure<<0x08)|&ta_go;
+&timcon2=(&clk_trail<<0x018)|(&clk_zero<<0x10)|(0x1<<0x08);
+&timcon3=(&clk_exit<<0x10)|(&clk_post<<0x08)|&clk_hs_prep;
+
+D.S SD:&DSI_PHY_TIMCON0 %LE %LONG &timcon0   ; DSI_PHY_TIMCON0
+D.S SD:&DSI_PHY_TIMCON1 %LE %LONG &timcon1   ; DSI_PHY_TIMCON1
+D.S SD:&DSI_PHY_TIMCON2 %LE %LONG &timcon2   ; DSI_PHY_TIMCON2
+D.S SD:&DSI_PHY_TIMCON3 %LE %LONG &timcon3   ; DSI_PHY_TIMCON3
+
+
+;------------------------------------------------------------------------
+; DSI Global Settings
+;------------------------------------------------------------------------
+;D.S SD:&DSI_COM_CON %LE %LONG 0x00000002    ;; dsi_en
+
+

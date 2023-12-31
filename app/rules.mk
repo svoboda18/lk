@@ -1,0 +1,12 @@
+LOCAL_DIR := $(GET_LOCAL_DIR)
+
+MODULES += \
+
+ifeq ($(DEVICE_TREE_SUPPORT), yes)
+MODULES += lib/libfdt
+MODULES += lib/libufdt
+endif
+
+OBJS += \
+	$(LOCAL_DIR)/app.o
+
