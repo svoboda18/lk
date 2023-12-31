@@ -92,6 +92,11 @@ static int fastboot_data_part_wipe()
 	ret = set_env("unlock_erase", "start");
 	if (ret)
 		goto end;
+        ret = set_env("unlock_erase", "pass");
+        if (ret)
+                goto end;
+
+	return B_OK;
 
 	err = partition_erase("userdata");
 	if (err != PART_OK) {
