@@ -53,6 +53,7 @@ extern LCM_DRIVER hct_ili9881_dsi_vdo_hd_cpt;
 extern LCM_DRIVER hct_hx8394f_dsi_vdo_hd_cmi;
 extern LCM_DRIVER hct_otm1282_dsi_vdo_hd_auo;
 extern LCM_DRIVER hct_rm68200_dsi_vdo_hd_cpt;
+extern LCM_DRIVER hct_rm68200_dsi_vdo_hd_tm_50_xld;
 extern LCM_DRIVER hct_nt35521s_dsi_vdo_hd_boe_50_xld;
 extern LCM_DRIVER hct_hx8394d_dsi_vdo_hd_cmi;
 
@@ -75,6 +76,10 @@ LCM_DRIVER *lcm_driver_list[] = {
 
 #if defined(HCT_RM68200_DSI_VDO_HD_CPT)
        &hct_rm68200_dsi_vdo_hd_cpt,
+#endif
+
+#if defined(HCT_RM68200_DSI_VDO_HD_TM_50_XLD)
+       &hct_rm68200_dsi_vdo_hd_tm_50_xld,
 #endif
 
 #if defined(HCT_NT35521S_DSI_VDO_HD_BOE_50_XLD)

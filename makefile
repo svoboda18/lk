@@ -247,7 +247,7 @@ SRCDEPS += $(LOGO_IMAGE)
 
 # default to no ccache
 CCACHE ?=
-TOOLCHAIN_PREFIX ?=gcc/bin/arm-linux-androideabi-
+TOOLCHAIN_PREFIX =gcc/bin/arm-linux-androideabi-
 CC := $(CCACHE) $(TOOLCHAIN_PREFIX)gcc
 #LD := $(TOOLCHAIN_PREFIX)ld
 LD := $(TOOLCHAIN_PREFIX)ld.bfd
