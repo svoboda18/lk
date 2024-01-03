@@ -86,7 +86,7 @@ CFLAGS += -ffunction-sections -fdata-sections
 LDFLAGS += -gc-sections
 
 # top level rule
-all:: $(OUTBIN) $(OUTELF).lst $(OUTELF).debug.lst $(OUTELF).sym $(OUTELF).size
+all:: $(OUTBIN) $(OUTELF)-sign.img $(OUTELF).lst $(OUTELF).debug.lst $(OUTELF).sym $(OUTELF).size
 
 # the following three object lists are identical except for the ordering
 # which is bootobjs, kobjs, objs

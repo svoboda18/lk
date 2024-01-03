@@ -17,6 +17,16 @@ $(OUTBIN): $(OUTELF)
 	$(MKIMAGE) $@ img_hdr_lk.cfg > $(BUILDDIR)/lk_header.bin
 	$(NOECHO)mv $(BUILDDIR)/lk_header.bin $@
 
+$(OUTELF)-dtb.img: $(OUTBIN)
+	@echo adding dtb: $@
+	$(NOECHO)cat $< $(LK_TOP_DIR)/main_dtb_header.bin > $@
+
+$(OUTELF)-sign.img: $(OUTELF)-dtb.img
+	@mv $(OUTBIN) $(OUTELF)-bin.img
+	@cp $< $(OUTBIN)
+	@echo signing image: $@
+	$(NOECHO)perl $(LK_TOP_DIR)/scripts/sign/SignTool.pl "$(PROJECT)" "$(PROJECT)" "$(LK_TOP_DIR)/certs" "yes" "2048" "true" "$(BUILDDIR)" "lk.img" "no"
+
 ifeq ($(ENABLE_TRUSTZONE), 1)
 $(OUTELF): $(ALLOBJS) $(LINKER_SCRIPT) $(OUTPUT_TZ_BIN)
 ifeq ($(BUILD_SEC_LIB),yes)
