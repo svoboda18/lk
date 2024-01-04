@@ -1838,6 +1838,10 @@ static void set_serial_num(void)
 		sn_buf[len] = '\0';
 	}
 
+	if (strncmp(sn_buf, DEFAULT_SERIAL_NUM, SN_BUF_LEN) != 0) {
+		goto set_serialno;
+	}
+
 #ifdef CONFIG_MTK_USB_UNIQUE_SERIAL
 	int errcode = read_product_usbid(sn_buf);
 	if (errcode)
@@ -1846,6 +1850,10 @@ static void set_serial_num(void)
 	len = (len < SN_BUF_LEN) ? len : SN_BUF_LEN;
 	sn_buf[len] = '\0';
 #endif  // CONFIG_MTK_USB_UNIQUE_SERIAL
+
+	if (strncmp(sn_buf, DEFAULT_SERIAL_NUM, SN_BUF_LEN) != 0) {
+		goto set_serialno;
+	}
 
 #ifdef SERIAL_NUM_FROM_BARCODE
 	len = (unsigned int)read_product_info(sn_buf);  // sn_buf[] may be changed.
@@ -1858,6 +1866,7 @@ static void set_serial_num(void)
 	sn_buf[len] = '\0';
 #endif  // SERIAL_NUM_FROM_BARCODE
 
+set_serialno:
 	//pal_log_err("Serial #: \"%s\"\n", sn_buf);
 	surf_udc_device.serialno = sn_buf;
 }
